@@ -54,7 +54,7 @@ public class SmoothCoastersAPI {
             return false;
         }
 
-        implementation.sendRotation(player, x, y, z, w, ticks);
+        implementation.sendRotation(player, -x, -y, -z, w, ticks);
         return true;
     }
 
