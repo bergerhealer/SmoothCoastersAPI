@@ -6,7 +6,7 @@ import org.bukkit.plugin.Plugin;
 import java.nio.ByteBuffer;
 
 public class NetworkV1 implements NetworkImplementation {
-    private static final String CHANNEL = "smoothcoasters:rotation";
+    private static final String CHANNEL = "smoothcoasters:rot";
     private final Plugin plugin;
 
     public NetworkV1(Plugin plugin) {

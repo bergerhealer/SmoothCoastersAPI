@@ -13,7 +13,7 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 import java.util.Map;
 
 public class PlayerListener implements Listener, PluginMessageListener {
-    private static final String CHANNEL = "smoothcoasters:handshake";
+    private static final String CHANNEL = "smoothcoasters:hs";
     private final SmoothCoastersAPI api;
 
     public PlayerListener(SmoothCoastersAPI api) {
