@@ -1,6 +1,7 @@
 package me.m56738.smoothcoasters.api;
 
-import me.m56738.smoothcoasters.api.network.NetworkImplementation;
+import me.m56738.smoothcoasters.api.event.PlayerSmoothCoastersHandshakeEvent;
+import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,6 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class PlayerListener implements Listener, PluginMessageListener {
@@ -29,7 +31,7 @@ public class PlayerListener implements Listener, PluginMessageListener {
             return;
         }
 
-        Map<Byte, NetworkImplementation> implementations = api.getImplementations();
+        Map<Byte, Implementation> implementations = api.getImplementations();
 
         byte[] message = new byte[implementations.size() + 1];
         message[0] = (byte) implementations.size();
@@ -53,8 +55,12 @@ public class PlayerListener implements Listener, PluginMessageListener {
             return;
         }
 
-        NetworkImplementation implementation = api.getImplementations().get(payload[0]);
+        ByteBuffer buffer = ByteBuffer.wrap(payload);
+        Implementation implementation = api.getImplementations().get(buffer.get());
+        String version = buffer.hasRemaining() ? Util.readString(buffer) : null;
+
         api.setImplementation(player, implementation);
+        Bukkit.getPluginManager().callEvent(new PlayerSmoothCoastersHandshakeEvent(player, implementation, version));
     }
 
     public void unregister() {
