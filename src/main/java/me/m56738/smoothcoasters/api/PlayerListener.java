@@ -31,6 +31,8 @@ public class PlayerListener implements Listener, PluginMessageListener {
             return;
         }
 
+        // Client is using SmoothCoasters - tell it which implementation versions we support
+
         Map<Byte, Implementation> implementations = api.getImplementations();
 
         byte[] message = new byte[implementations.size() + 1];
@@ -44,16 +46,13 @@ public class PlayerListener implements Listener, PluginMessageListener {
         event.getPlayer().sendPluginMessage(api.getPlugin(), CHANNEL, message);
     }
 
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        api.setImplementation(event.getPlayer(), null);
-    }
-
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] payload) {
         if (!channel.equals(CHANNEL) || payload.length < 1) {
             return;
         }
+
+        // The client decided which implementation should be used
 
         ByteBuffer buffer = ByteBuffer.wrap(payload);
         Implementation implementation = api.getImplementations().get(buffer.get());
@@ -61,6 +60,11 @@ public class PlayerListener implements Listener, PluginMessageListener {
 
         api.setImplementation(player, implementation);
         Bukkit.getPluginManager().callEvent(new PlayerSmoothCoastersHandshakeEvent(player, implementation, version));
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        api.setImplementation(event.getPlayer(), null);
     }
 
     public void unregister() {

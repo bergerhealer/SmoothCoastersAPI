@@ -5,6 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
+/**
+ * The SmoothCoasters handshake was completed successfully and an implementation was chosen.
+ */
 public class PlayerSmoothCoastersHandshakeEvent extends PlayerEvent {
     private static final HandlerList handlerList = new HandlerList();
     private final Implementation implementation;
@@ -20,10 +23,16 @@ public class PlayerSmoothCoastersHandshakeEvent extends PlayerEvent {
         return handlerList;
     }
 
+    /**
+     * @return the implementation that will be used for this player
+     */
     public Implementation getImplementation() {
         return implementation;
     }
 
+    /**
+     * @return the SmoothCoasters version of the player - useful for update notifications
+     */
     public String getVersion() {
         return version;
     }
