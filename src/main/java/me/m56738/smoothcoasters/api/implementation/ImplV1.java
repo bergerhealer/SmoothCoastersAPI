@@ -1,6 +1,7 @@
 package me.m56738.smoothcoasters.api.implementation;
 
 import me.m56738.smoothcoasters.api.Feature;
+import me.m56738.smoothcoasters.api.NetworkInterface;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -30,7 +31,7 @@ public class ImplV1 implements Implementation {
     }
 
     @Override
-    public void sendRotation(Player player, float x, float y, float z, float w, byte ticks) {
+    public void sendRotation(NetworkInterface network, Player player, float x, float y, float z, float w, byte ticks) {
         ByteBuffer buffer = ByteBuffer.allocate(17);
         buffer.putFloat(x);
         buffer.putFloat(y);
@@ -42,11 +43,11 @@ public class ImplV1 implements Implementation {
         byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
 
-        player.sendPluginMessage(plugin, CHANNEL_ROTATION, bytes);
+        network.sendMessage(player, CHANNEL_ROTATION, bytes);
     }
 
     @Override
-    public void sendBulk(Player player, byte[] data) {
-        player.sendPluginMessage(plugin, CHANNEL_BULK, data);
+    public void sendBulk(NetworkInterface network, Player player, byte[] data) {
+        network.sendMessage(player, CHANNEL_BULK, data);
     }
 }

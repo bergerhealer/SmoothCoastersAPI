@@ -1,6 +1,7 @@
 package me.m56738.smoothcoasters.api.implementation;
 
 import me.m56738.smoothcoasters.api.Feature;
+import me.m56738.smoothcoasters.api.NetworkInterface;
 import org.bukkit.entity.Player;
 
 import java.util.EnumSet;
@@ -14,15 +15,19 @@ public interface Implementation {
 
     byte getVersion();
 
-    default void sendRotation(Player player, float x, float y, float z, float w, byte ticks) {
+    default void sendRotation(NetworkInterface network, Player player, float x, float y, float z, float w, byte ticks) {
         throw new UnsupportedOperationException();
     }
 
-    default void sendBulk(Player player, byte[] data) {
+    default void sendBulk(NetworkInterface network, Player player, byte[] data) {
         throw new UnsupportedOperationException();
     }
 
-    default void sendEntityRotation(Player player, int entity, float x, float y, float z, float w, byte ticks) {
+    default void sendEntityRotation(NetworkInterface network, Player player, int entity, float x, float y, float z, float w, byte ticks) {
+        throw new UnsupportedOperationException();
+    }
+
+    default void sendEntityProperties(NetworkInterface network, Player player, int entity, byte ticks) {
         throw new UnsupportedOperationException();
     }
 }

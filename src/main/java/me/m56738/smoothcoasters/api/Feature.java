@@ -12,5 +12,9 @@ public enum Feature {
     /**
      * Rotate an entity for a player
      */
-    ENTITY_ROTATION
+    ENTITY_ROTATION,
+    /**
+     * Update entity properties
+     */
+    ENTITY_PROPERTIES
 }

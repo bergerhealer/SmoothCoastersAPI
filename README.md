@@ -16,7 +16,7 @@ SmoothCoastersAPI is available in the TrainCarts Maven repository:
 <dependency>
     <groupId>me.m56738</groupId>
     <artifactId>SmoothCoastersAPI</artifactId>
-    <version>1.2</version>
+    <version>1.4</version>
 </dependency>
 ```
 

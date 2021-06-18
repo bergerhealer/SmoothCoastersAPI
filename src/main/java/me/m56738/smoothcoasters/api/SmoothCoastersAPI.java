@@ -2,6 +2,7 @@ package me.m56738.smoothcoasters.api;
 
 import me.m56738.smoothcoasters.api.implementation.ImplV1;
 import me.m56738.smoothcoasters.api.implementation.ImplV2;
+import me.m56738.smoothcoasters.api.implementation.ImplV3;
 import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -20,12 +21,15 @@ public class SmoothCoastersAPI {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Lock readLock = lock.readLock();
     private final Lock writeLock = lock.writeLock();
+    private final NetworkInterface defaultNetwork;
 
     public SmoothCoastersAPI(Plugin plugin) {
         this.plugin = plugin;
         this.playerListener = new PlayerListener(this);
+        this.defaultNetwork = new DefaultNetworkInterface(plugin);
         registerImplementation(new ImplV1(plugin));
         registerImplementation(new ImplV2(plugin));
+        registerImplementation(new ImplV3(plugin));
     }
 
     public void registerImplementation(Implementation implementation) {
@@ -96,25 +100,31 @@ public class SmoothCoastersAPI {
      * Resets the camera rotation of the player.
      * Should be called when the player leaves a vehicle.
      *
-     * @param player player whose view should be reset
+     * @param network interface to communicate with the player, null for default
+     * @param player  player whose view should be reset
      * @return true if the implementation used for this player supports {@link Feature#ROTATION}
      */
-    public boolean resetRotation(Player player) {
-        return setRotation(player, 0, 0, 0, 1, (byte) 0);
+    public boolean resetRotation(NetworkInterface network, Player player) {
+        return setRotation(network, player, 0, 0, 0, 1, (byte) 0);
     }
 
     /**
      * Rotates the camera of the player.
      *
-     * @param player player whose view should be rotated
-     * @param x      x component of the quaternion
-     * @param y      y component of the quaternion
-     * @param z      z component of the quaternion
-     * @param w      w component of the quaternion
-     * @param ticks  how long the interpolation should take - usually 3 ticks
+     * @param network interface to communicate with the player, null for default
+     * @param player  player whose view should be rotated
+     * @param x       x component of the quaternion
+     * @param y       y component of the quaternion
+     * @param z       z component of the quaternion
+     * @param w       w component of the quaternion
+     * @param ticks   how long the interpolation should take - usually 3 ticks
      * @return true if the implementation used for this player supports {@link Feature#ROTATION}
      */
-    public boolean setRotation(Player player, float x, float y, float z, float w, byte ticks) {
+    public boolean setRotation(NetworkInterface network, Player player, float x, float y, float z, float w, byte ticks) {
+        if (network == null) {
+            network = defaultNetwork;
+        }
+
         readLock.lock();
         try {
             Implementation implementation = players.get(player);
@@ -122,7 +132,7 @@ public class SmoothCoastersAPI {
                 return false;
             }
 
-            implementation.sendRotation(player, x, y, z, w, ticks);
+            implementation.sendRotation(network, player, x, y, z, w, ticks);
             return true;
         } finally {
             readLock.unlock();
@@ -132,16 +142,21 @@ public class SmoothCoastersAPI {
     /**
      * Rotates another entity for the player.
      *
-     * @param player player who should see the rotated entity
-     * @param entity entity which should be rotated
-     * @param x      x component of the quaternion
-     * @param y      y component of the quaternion
-     * @param z      z component of the quaternion
-     * @param w      w component of the quaternion
-     * @param ticks  how long the interpolation should take - usually 3 ticks
+     * @param network interface to communicate with the player, null for default
+     * @param player  player who should see the rotated entity
+     * @param entity  entity which should be rotated
+     * @param x       x component of the quaternion
+     * @param y       y component of the quaternion
+     * @param z       z component of the quaternion
+     * @param w       w component of the quaternion
+     * @param ticks   how long the interpolation should take - usually 3 ticks
      * @return true if the implementation used for this player supports {@link Feature#ENTITY_ROTATION}
      */
-    public boolean setEntityRotation(Player player, int entity, float x, float y, float z, float w, byte ticks) {
+    public boolean setEntityRotation(NetworkInterface network, Player player, int entity, float x, float y, float z, float w, byte ticks) {
+        if (network == null) {
+            network = defaultNetwork;
+        }
+
         readLock.lock();
         try {
             Implementation implementation = players.get(player);
@@ -149,7 +164,7 @@ public class SmoothCoastersAPI {
                 return false;
             }
 
-            implementation.sendEntityRotation(player, entity, x, y, z, w, ticks);
+            implementation.sendEntityRotation(network, player, entity, x, y, z, w, ticks);
             return true;
         } finally {
             readLock.unlock();
@@ -167,11 +182,16 @@ public class SmoothCoastersAPI {
      * For performance reasons, you should check whether the feature is supported
      * using {@link #isSupported(Player, Feature)} before encoding the data.
      *
-     * @param player player who should receive the packets
-     * @param data   encoded packet data
-     * @return true if the packets were sent successfully, <b>send the packets yourself if false!</b>
+     * @param network interface to communicate with the player, null for default
+     * @param player  player who should receive the packets
+     * @param data    encoded packet data
+     * @return true if the implementation used for this player supports {@link Feature#BULK}, <b>send the packets yourself if false!</b>
      */
-    public boolean sendBulk(Player player, byte[] data) {
+    public boolean sendBulk(NetworkInterface network, Player player, byte[] data) {
+        if (network == null) {
+            network = defaultNetwork;
+        }
+
         readLock.lock();
         try {
             Implementation implementation = players.get(player);
@@ -179,7 +199,37 @@ public class SmoothCoastersAPI {
                 return false;
             }
 
-            implementation.sendBulk(player, data);
+            implementation.sendBulk(network, player, data);
+            return true;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    /**
+     * Sets the lerp ticks of the specified entity.
+     * The entity must be an armor stand.
+     * The default value is 3.
+     *
+     * @param network interface to communicate with the player, null for default
+     * @param player  player who the change should be sent to
+     * @param entity  entity which should be modified
+     * @param ticks   lerp ticks of the entity
+     * @return true if the implementation used for this player supports {@link Feature#ENTITY_PROPERTIES}
+     */
+    public boolean setEntityLerpTicks(NetworkInterface network, Player player, int entity, byte ticks) {
+        if (network == null) {
+            network = defaultNetwork;
+        }
+
+        readLock.lock();
+        try {
+            Implementation implementation = players.get(player);
+            if (implementation == null || !implementation.isSupported(Feature.ENTITY_PROPERTIES)) {
+                return false;
+            }
+
+            implementation.sendEntityProperties(network, player, entity, ticks);
             return true;
         } finally {
             readLock.unlock();
