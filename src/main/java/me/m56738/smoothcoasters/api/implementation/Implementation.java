@@ -2,6 +2,7 @@ package me.m56738.smoothcoasters.api.implementation;
 
 import me.m56738.smoothcoasters.api.Feature;
 import me.m56738.smoothcoasters.api.NetworkInterface;
+import me.m56738.smoothcoasters.api.RotationMode;
 import org.bukkit.entity.Player;
 
 import java.util.EnumSet;
@@ -28,6 +29,10 @@ public interface Implementation {
     }
 
     default void sendEntityProperties(NetworkInterface network, Player player, int entity, byte ticks) {
+        throw new UnsupportedOperationException();
+    }
+
+    default void sendRotationMode(NetworkInterface network, Player player, RotationMode mode) {
         throw new UnsupportedOperationException();
     }
 }

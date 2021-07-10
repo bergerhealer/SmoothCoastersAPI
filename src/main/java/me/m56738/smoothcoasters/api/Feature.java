@@ -16,5 +16,9 @@ public enum Feature {
     /**
      * Update entity properties
      */
-    ENTITY_PROPERTIES
+    ENTITY_PROPERTIES,
+    /**
+     * Change the camera rotation mode
+     */
+    ROTATION_MODE
 }

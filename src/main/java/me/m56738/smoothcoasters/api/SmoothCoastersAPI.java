@@ -236,6 +236,33 @@ public class SmoothCoastersAPI {
         }
     }
 
+    /**
+     * Sets the camera rotation mode for the specified player.
+     *
+     * @param network interface to communicate with the player, null for default
+     * @param player  player who the change should be sent to
+     * @param mode    the new rotation mode
+     * @return true if the implementation used for this player supports {@link Feature#ROTATION_MODE}
+     */
+    public boolean setEntityLerpTicks(NetworkInterface network, Player player, RotationMode mode) {
+        if (network == null) {
+            network = defaultNetwork;
+        }
+
+        readLock.lock();
+        try {
+            Implementation implementation = players.get(player);
+            if (implementation == null || !implementation.isSupported(Feature.ROTATION_MODE)) {
+                return false;
+            }
+
+            implementation.sendRotationMode(network, player, mode);
+            return true;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
     public void unregister() {
         writeLock.lock();
         try {
