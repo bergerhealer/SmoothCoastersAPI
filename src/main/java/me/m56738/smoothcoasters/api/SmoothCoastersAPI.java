@@ -244,7 +244,7 @@ public class SmoothCoastersAPI {
      * @param mode    the new rotation mode
      * @return true if the implementation used for this player supports {@link Feature#ROTATION_MODE}
      */
-    public boolean setEntityLerpTicks(NetworkInterface network, Player player, RotationMode mode) {
+    public boolean setRotationMode(NetworkInterface network, Player player, RotationMode mode) {
         if (network == null) {
             network = defaultNetwork;
         }

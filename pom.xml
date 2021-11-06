@@ -6,7 +6,7 @@
 
     <groupId>me.m56738</groupId>
     <artifactId>SmoothCoastersAPI</artifactId>
-    <version>1.5</version>
+    <version>1.6</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <!-- Depend on 1.8.8 because that's the minimum version some plugins like TrainCarts support -->
-            <!-- SmoothCoasters only supports 1.15+ -->
+            <!-- SmoothCoasters only supports 1.15+ clients -->
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.8.8-R0.1-SNAPSHOT</version>
