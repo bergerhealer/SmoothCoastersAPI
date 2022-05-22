@@ -1,9 +1,6 @@
 package me.m56738.smoothcoasters.api;
 
-import me.m56738.smoothcoasters.api.implementation.ImplV1;
-import me.m56738.smoothcoasters.api.implementation.ImplV2;
-import me.m56738.smoothcoasters.api.implementation.ImplV3;
-import me.m56738.smoothcoasters.api.implementation.Implementation;
+import me.m56738.smoothcoasters.api.implementation.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -30,6 +27,7 @@ public class SmoothCoastersAPI {
         registerImplementation(new ImplV1(plugin));
         registerImplementation(new ImplV2(plugin));
         registerImplementation(new ImplV3(plugin));
+        registerImplementation(new ImplV4(plugin));
     }
 
     public void registerImplementation(Implementation implementation) {
@@ -187,6 +185,7 @@ public class SmoothCoastersAPI {
      * @param data    encoded packet data
      * @return true if the implementation used for this player supports {@link Feature#BULK}, <b>send the packets yourself if false!</b>
      */
+    @Deprecated
     public boolean sendBulk(NetworkInterface network, Player player, byte[] data) {
         if (network == null) {
             network = defaultNetwork;
@@ -244,6 +243,7 @@ public class SmoothCoastersAPI {
      * @param mode    the new rotation mode
      * @return true if the implementation used for this player supports {@link Feature#ROTATION_MODE}
      */
+    @Deprecated
     public boolean setRotationMode(NetworkInterface network, Player player, RotationMode mode) {
         if (network == null) {
             network = defaultNetwork;
@@ -261,6 +261,50 @@ public class SmoothCoastersAPI {
         } finally {
             readLock.unlock();
         }
+    }
+
+    /**
+     * Sets the camera rotation limit for the specified player.
+     * This limit is applied to the local yaw/pitch.
+     * For example, if all values are 0, the player rotation is locked to the server-supplied rotation set
+     * using {@link SmoothCoastersAPI#setRotation}.
+     *
+     * @param network  interface to communicate with the player, null for default
+     * @param player   player who the change should be sent to
+     * @param minYaw   the minimum yaw (-180 to 180)
+     * @param maxYaw   the maximum yaw (-180 to 180)
+     * @param minPitch the minimum pitch (-90 to 90)
+     * @param maxPitch the maximum pitch (-90 to 90)
+     * @return true if the implementation used for this player supports {@link Feature#ROTATION_LIMIT}
+     */
+    public boolean setRotationLimit(NetworkInterface network, Player player, float minYaw, float maxYaw, float minPitch, float maxPitch) {
+        if (network == null) {
+            network = defaultNetwork;
+        }
+
+        readLock.lock();
+        try {
+            Implementation implementation = players.get(player);
+            if (implementation == null || !implementation.isSupported(Feature.ROTATION_LIMIT)) {
+                return false;
+            }
+
+            implementation.sendRotationLimit(network, player, minYaw, maxYaw, minPitch, maxPitch);
+            return true;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    /**
+     * Resets (removes) the camera rotation limit for the specified player.
+     *
+     * @param network interface to communicate with the player, null for default
+     * @param player  player who the change should be sent to
+     * @return true if the implementation used for this player supports {@link Feature#ROTATION_LIMIT}
+     */
+    public boolean resetRotationLimit(NetworkInterface network, Player player) {
+        return setRotationLimit(network, player, -180f, 180f, -90f, 90f);
     }
 
     public void unregister() {

@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 import java.nio.ByteBuffer;
 import java.util.EnumSet;
 
+@SuppressWarnings("deprecation")
 public class ImplV3 extends ImplV2 {
     protected static final String CHANNEL_ENTITY_PROPERTIES = "smoothcoasters:eprop";
     protected static final String CHANNEL_ROTATION_MODE = "smoothcoasters:rmode";

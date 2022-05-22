@@ -20,6 +20,7 @@ public interface Implementation {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void sendBulk(NetworkInterface network, Player player, byte[] data) {
         throw new UnsupportedOperationException();
     }
@@ -32,7 +33,12 @@ public interface Implementation {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void sendRotationMode(NetworkInterface network, Player player, RotationMode mode) {
+        throw new UnsupportedOperationException();
+    }
+
+    default void sendRotationLimit(NetworkInterface network, Player player, float minYaw, float maxYaw, float minPitch, float maxPitch) {
         throw new UnsupportedOperationException();
     }
 }

@@ -8,6 +8,7 @@ public enum Feature {
     /**
      * Send multiple packets at once to force processing them in the same tick
      */
+    @Deprecated
     BULK,
     /**
      * Rotate an entity for a player
@@ -20,5 +21,10 @@ public enum Feature {
     /**
      * Change the camera rotation mode
      */
-    ROTATION_MODE
+    @Deprecated
+    ROTATION_MODE,
+    /**
+     * Change the camera rotation limit
+     */
+    ROTATION_LIMIT
 }

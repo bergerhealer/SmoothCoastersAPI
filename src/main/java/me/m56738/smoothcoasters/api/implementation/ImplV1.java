@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import java.nio.ByteBuffer;
 import java.util.EnumSet;
 
+@SuppressWarnings("deprecation")
 public class ImplV1 implements Implementation {
     protected static final String CHANNEL_ROTATION = "smoothcoasters:rot";
     protected static final String CHANNEL_BULK = "smoothcoasters:bulk";
