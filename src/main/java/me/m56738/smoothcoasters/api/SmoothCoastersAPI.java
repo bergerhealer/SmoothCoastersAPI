@@ -1,6 +1,7 @@
 package me.m56738.smoothcoasters.api;
 
-import me.m56738.smoothcoasters.api.implementation.*;
+import me.m56738.smoothcoasters.api.implementation.ImplV4;
+import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -24,9 +25,6 @@ public class SmoothCoastersAPI {
         this.plugin = plugin;
         this.playerListener = new PlayerListener(this);
         this.defaultNetwork = new DefaultNetworkInterface(plugin);
-        registerImplementation(new ImplV1(plugin));
-        registerImplementation(new ImplV2(plugin));
-        registerImplementation(new ImplV3(plugin));
         registerImplementation(new ImplV4(plugin));
     }
 
@@ -170,42 +168,6 @@ public class SmoothCoastersAPI {
     }
 
     /**
-     * Sends a bulk packet to the player.
-     * A bulk packet contains multiple normal packets.
-     * All of those packets will be executed in the same tick.
-     * <p>
-     * <b>No packets will be sent if the implementation used for this player doesn't support {@link Feature#BULK}.</b>
-     * <p>
-     * This method can (and should) be called asynchronously.
-     * For performance reasons, you should check whether the feature is supported
-     * using {@link #isSupported(Player, Feature)} before encoding the data.
-     *
-     * @param network interface to communicate with the player, null for default
-     * @param player  player who should receive the packets
-     * @param data    encoded packet data
-     * @return true if the implementation used for this player supports {@link Feature#BULK}, <b>send the packets yourself if false!</b>
-     */
-    @Deprecated
-    public boolean sendBulk(NetworkInterface network, Player player, byte[] data) {
-        if (network == null) {
-            network = defaultNetwork;
-        }
-
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null || !implementation.isSupported(Feature.BULK)) {
-                return false;
-            }
-
-            implementation.sendBulk(network, player, data);
-            return true;
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    /**
      * Sets the lerp ticks of the specified entity.
      * The entity must be an armor stand.
      * The default value is 3.
@@ -229,34 +191,6 @@ public class SmoothCoastersAPI {
             }
 
             implementation.sendEntityProperties(network, player, entity, ticks);
-            return true;
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    /**
-     * Sets the camera rotation mode for the specified player.
-     *
-     * @param network interface to communicate with the player, null for default
-     * @param player  player who the change should be sent to
-     * @param mode    the new rotation mode
-     * @return true if the implementation used for this player supports {@link Feature#ROTATION_MODE}
-     */
-    @Deprecated
-    public boolean setRotationMode(NetworkInterface network, Player player, RotationMode mode) {
-        if (network == null) {
-            network = defaultNetwork;
-        }
-
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null || !implementation.isSupported(Feature.ROTATION_MODE)) {
-                return false;
-            }
-
-            implementation.sendRotationMode(network, player, mode);
             return true;
         } finally {
             readLock.unlock();
