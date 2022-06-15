@@ -24,10 +24,10 @@ public class PlayerSmoothCoastersHandshakeEvent extends PlayerEvent {
     }
 
     /**
-     * @return the implementation that will be used for this player
+     * @return the version of the used implementation
      */
-    public Implementation getImplementation() {
-        return implementation;
+    public byte getImplementationVersion() {
+        return implementation.getVersion();
     }
 
     /**

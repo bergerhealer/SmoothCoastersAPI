@@ -59,7 +59,10 @@ public class PlayerListener implements Listener, PluginMessageListener {
         String version = buffer.hasRemaining() ? Util.readString(buffer) : null;
 
         api.setImplementation(player, implementation);
-        Bukkit.getPluginManager().callEvent(new PlayerSmoothCoastersHandshakeEvent(player, implementation, version));
+
+        if (implementation != null) {
+            Bukkit.getPluginManager().callEvent(new PlayerSmoothCoastersHandshakeEvent(player, implementation, version));
+        }
     }
 
     @EventHandler

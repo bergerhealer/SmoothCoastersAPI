@@ -1,5 +1,6 @@
 package me.m56738.smoothcoasters.api;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 class Util {
@@ -21,6 +22,9 @@ class Util {
 
     public static String readString(ByteBuffer buffer) {
         int length = readVarInt(buffer);
+        if (length > buffer.remaining()) {
+            throw new BufferUnderflowException();
+        }
         byte[] data = new byte[length];
         buffer.get(data);
         return new String(data);
