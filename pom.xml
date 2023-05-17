@@ -6,7 +6,7 @@
 
     <groupId>me.m56738</groupId>
     <artifactId>SmoothCoastersAPI</artifactId>
-    <version>1.8</version>
+    <version>1.9</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

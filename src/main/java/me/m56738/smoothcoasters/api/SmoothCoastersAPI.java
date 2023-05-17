@@ -1,6 +1,7 @@
 package me.m56738.smoothcoasters.api;
 
 import me.m56738.smoothcoasters.api.implementation.ImplV4;
+import me.m56738.smoothcoasters.api.implementation.ImplV5;
 import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -26,6 +27,7 @@ public class SmoothCoastersAPI {
         this.playerListener = new PlayerListener(this);
         this.defaultNetwork = new DefaultNetworkInterface(plugin);
         registerImplementation(new ImplV4(plugin));
+        registerImplementation(new ImplV5(plugin));
     }
 
     public void registerImplementation(Implementation implementation) {
@@ -67,6 +69,26 @@ public class SmoothCoastersAPI {
         readLock.lock();
         try {
             return players.containsKey(player);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    /**
+     * Returns the version of the implementation used for the player.
+     *
+     * @param player player whose version should be queried
+     * @return the implementation version, or -1 if none is used
+     */
+    public byte getVersion(Player player) {
+        readLock.lock();
+        try {
+            Implementation implementation = players.get(player);
+            if (implementation != null) {
+                return implementation.getVersion();
+            } else {
+                return -1;
+            }
         } finally {
             readLock.unlock();
         }
