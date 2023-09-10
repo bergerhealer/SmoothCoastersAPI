@@ -8,18 +8,14 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SmoothCoastersAPI {
     private final Plugin plugin;
     private final PlayerListener playerListener;
     private final Map<Byte, Implementation> implementations = new HashMap<>();
-    private final Map<Player, Implementation> players = new HashMap<>();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Lock readLock = lock.readLock();
-    private final Lock writeLock = lock.writeLock();
+    private final Map<UUID, PlayerEntry> players = new ConcurrentHashMap<>();
     private final NetworkInterface defaultNetwork;
 
     public SmoothCoastersAPI(Plugin plugin) {
@@ -31,12 +27,7 @@ public class SmoothCoastersAPI {
     }
 
     public void registerImplementation(Implementation implementation) {
-        writeLock.lock();
-        try {
-            implementations.put(implementation.getVersion(), implementation);
-        } finally {
-            writeLock.unlock();
-        }
+        implementations.put(implementation.getVersion(), implementation);
     }
 
     public Plugin getPlugin() {
@@ -44,34 +35,31 @@ public class SmoothCoastersAPI {
     }
 
     Map<Byte, Implementation> getImplementations() {
-        readLock.lock();
-        try {
-            return new HashMap<>(implementations);
-        } finally {
-            readLock.unlock();
-        }
+        return implementations;
     }
 
-    void setImplementation(Player player, Implementation implementation) {
-        writeLock.lock();
-        try {
-            if (implementation != null) {
-                players.put(player, implementation);
-            } else {
-                players.remove(player);
-            }
-        } finally {
-            writeLock.unlock();
+    PlayerEntry getEntry(Player player) {
+        return players.get(player.getUniqueId());
+    }
+
+    PlayerEntry getOrCreateEntry(Player player) {
+        return players.computeIfAbsent(player.getUniqueId(), u -> new PlayerEntry());
+    }
+
+    void removeEntry(Player player) {
+        players.remove(player.getUniqueId());
+    }
+
+    private Implementation getImplementation(Player player) {
+        PlayerEntry entry = getEntry(player);
+        if (entry == null) {
+            return null;
         }
+        return entry.getImplementation();
     }
 
     public boolean isEnabled(Player player) {
-        readLock.lock();
-        try {
-            return players.containsKey(player);
-        } finally {
-            readLock.unlock();
-        }
+        return getImplementation(player) != null;
     }
 
     /**
@@ -81,16 +69,26 @@ public class SmoothCoastersAPI {
      * @return the implementation version, or -1 if none is used
      */
     public byte getVersion(Player player) {
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation != null) {
-                return implementation.getVersion();
-            } else {
-                return -1;
-            }
-        } finally {
-            readLock.unlock();
+        Implementation implementation = getImplementation(player);
+        if (implementation != null) {
+            return implementation.getVersion();
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * Returns the version of the mod that a player has installed.
+     *
+     * @param player player whose version should be queried
+     * @return the mod version, or null if unknown or not installed
+     */
+    public String getModVersion(Player player) {
+        PlayerEntry entry = getEntry(player);
+        if (entry != null) {
+            return entry.getVersion();
+        } else {
+            return null;
         }
     }
 
@@ -102,16 +100,11 @@ public class SmoothCoastersAPI {
      * @return true if the feature is supported
      */
     public boolean isSupported(Player player, Feature feature) {
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null) {
-                return false;
-            }
-            return implementation.isSupported(feature);
-        } finally {
-            readLock.unlock();
+        Implementation implementation = getImplementation(player);
+        if (implementation == null) {
+            return false;
         }
+        return implementation.isSupported(feature);
     }
 
     /**
@@ -143,18 +136,13 @@ public class SmoothCoastersAPI {
             network = defaultNetwork;
         }
 
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null || !implementation.isSupported(Feature.ROTATION)) {
-                return false;
-            }
-
-            implementation.sendRotation(network, player, x, y, z, w, ticks);
-            return true;
-        } finally {
-            readLock.unlock();
+        Implementation implementation = getImplementation(player);
+        if (implementation == null || !implementation.isSupported(Feature.ROTATION)) {
+            return false;
         }
+
+        implementation.sendRotation(network, player, x, y, z, w, ticks);
+        return true;
     }
 
     /**
@@ -175,18 +163,13 @@ public class SmoothCoastersAPI {
             network = defaultNetwork;
         }
 
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null || !implementation.isSupported(Feature.ENTITY_ROTATION)) {
-                return false;
-            }
-
-            implementation.sendEntityRotation(network, player, entity, x, y, z, w, ticks);
-            return true;
-        } finally {
-            readLock.unlock();
+        Implementation implementation = getImplementation(player);
+        if (implementation == null || !implementation.isSupported(Feature.ENTITY_ROTATION)) {
+            return false;
         }
+
+        implementation.sendEntityRotation(network, player, entity, x, y, z, w, ticks);
+        return true;
     }
 
     /**
@@ -205,18 +188,13 @@ public class SmoothCoastersAPI {
             network = defaultNetwork;
         }
 
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null || !implementation.isSupported(Feature.ENTITY_PROPERTIES)) {
-                return false;
-            }
-
-            implementation.sendEntityProperties(network, player, entity, ticks);
-            return true;
-        } finally {
-            readLock.unlock();
+        Implementation implementation = getImplementation(player);
+        if (implementation == null || !implementation.isSupported(Feature.ENTITY_PROPERTIES)) {
+            return false;
         }
+
+        implementation.sendEntityProperties(network, player, entity, ticks);
+        return true;
     }
 
     /**
@@ -238,18 +216,13 @@ public class SmoothCoastersAPI {
             network = defaultNetwork;
         }
 
-        readLock.lock();
-        try {
-            Implementation implementation = players.get(player);
-            if (implementation == null || !implementation.isSupported(Feature.ROTATION_LIMIT)) {
-                return false;
-            }
-
-            implementation.sendRotationLimit(network, player, minYaw, maxYaw, minPitch, maxPitch);
-            return true;
-        } finally {
-            readLock.unlock();
+        Implementation implementation = getImplementation(player);
+        if (implementation == null || !implementation.isSupported(Feature.ROTATION_LIMIT)) {
+            return false;
         }
+
+        implementation.sendRotationLimit(network, player, minYaw, maxYaw, minPitch, maxPitch);
+        return true;
     }
 
     /**
@@ -264,12 +237,8 @@ public class SmoothCoastersAPI {
     }
 
     public void unregister() {
-        writeLock.lock();
-        try {
-            implementations.clear();
-            playerListener.unregister();
-        } finally {
-            writeLock.unlock();
-        }
+        implementations.clear();
+        playerListener.unregister();
+        players.clear();
     }
 }

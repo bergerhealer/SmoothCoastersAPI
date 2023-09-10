@@ -13,6 +13,7 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class PlayerListener implements Listener, PluginMessageListener {
     private static final String CHANNEL = "smoothcoasters:hs";
@@ -54,11 +55,20 @@ public class PlayerListener implements Listener, PluginMessageListener {
 
         // The client decided which implementation should be used
 
+        Implementation implementation;
+        String version;
         ByteBuffer buffer = ByteBuffer.wrap(payload);
-        Implementation implementation = api.getImplementations().get(buffer.get());
-        String version = buffer.hasRemaining() ? Util.readString(buffer) : null;
+        try {
+            implementation = api.getImplementations().get(buffer.get());
+            version = buffer.hasRemaining() ? Util.readString(buffer, 32) : null;
+        } catch (Exception e) {
+            api.getPlugin().getLogger().log(Level.SEVERE, "[SmoothCoastersAPI] Received invalid handshake from " + player.getName(), e);
+            return;
+        }
 
-        api.setImplementation(player, implementation);
+        PlayerEntry entry = api.getOrCreateEntry(player);
+        entry.setImplementation(implementation);
+        entry.setVersion(version);
 
         if (implementation != null) {
             Bukkit.getPluginManager().callEvent(new PlayerSmoothCoastersHandshakeEvent(player, implementation, version));
@@ -67,11 +77,12 @@ public class PlayerListener implements Listener, PluginMessageListener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        api.setImplementation(event.getPlayer(), null);
+        api.removeEntry(event.getPlayer());
     }
 
     public void unregister() {
         HandlerList.unregisterAll(this);
         Bukkit.getMessenger().unregisterIncomingPluginChannel(api.getPlugin(), CHANNEL, this);
+        Bukkit.getMessenger().unregisterOutgoingPluginChannel(api.getPlugin(), CHANNEL);
     }
 }

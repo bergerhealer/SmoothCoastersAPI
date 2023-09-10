@@ -16,11 +16,11 @@ SmoothCoastersAPI is available in the TrainCarts Maven repository:
 <dependency>
     <groupId>me.m56738</groupId>
     <artifactId>SmoothCoastersAPI</artifactId>
-    <version>1.9</version>
+    <version>1.10</version>
 </dependency>
 ```
 
-The API has to be [shaded](https://maven.apache.org/plugins/maven-shade-plugin/) into your plugin - it's not a plugin on its own. 
+The API has to be [shaded](https://maven.apache.org/plugins/maven-shade-plugin/) into your plugin and relocated - it's not a plugin on its own. 
 
 ## Usage
 
