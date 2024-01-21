@@ -31,7 +31,7 @@ Call its `unregister()` method in `onDisable()`.
 
 The camera rotation feature uses quaternions to prevent gimbal lock.
 
-Use `setRotation(player, x, y, z, w, ticks)` to set the rotation.
+Use `setRotation(null, player, x, y, z, w, ticks)` to set the rotation.
 
 | Parameter  | Type   | Description                            |
 | ---------- | ------ | -------------------------------------- |
@@ -39,5 +39,13 @@ Use `setRotation(player, x, y, z, w, ticks)` to set the rotation.
 | x, y, z, w | float  | Quaternion fields                      |
 | ticks      | byte   | Duration of the interpolation in ticks |
 
-A value of 3 is recommended for `ticks`.
-Use `resetRotation(player)` to reset the rotation (usually when the player leaves their vehicle).
+The value 3 is recommended for `ticks`.
+Use `resetRotation(null, player)` to reset the rotation (usually when the player leaves their vehicle).
+
+### Network interface
+
+Most methods in the `SmoothCoastersAPI` take a `NetworkInterface` as the first parameter.
+Implementing your own `NetworkInterface` allows you to customize how plugin messages are sent to the client.
+For example, TrainCarts uses this to send SmoothCoasters packets in the same bundle packet as other packets.
+
+You probably don't need this, so you can just set the first parameter to `null` to use the default implementation which simply calls`Player#sendPluginMessage`.
