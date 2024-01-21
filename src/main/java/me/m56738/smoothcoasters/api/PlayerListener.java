@@ -5,18 +5,25 @@ import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class PlayerListener implements Listener, PluginMessageListener {
     private static final String CHANNEL = "smoothcoasters:hs";
+    private static final String SUPPORTED_VERSIONS = "smoothcoasters_supported_versions";
+    private static final String OFFERED_VERSIONS = "smoothcoasters_offered_versions";
     private final SmoothCoastersAPI api;
 
     public PlayerListener(SmoothCoastersAPI api) {
@@ -26,21 +33,64 @@ public class PlayerListener implements Listener, PluginMessageListener {
         Bukkit.getMessenger().registerOutgoingPluginChannel(api.getPlugin(), CHANNEL);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerRegisterChannelStart(PlayerRegisterChannelEvent event) {
+        if (!event.getChannel().equals(CHANNEL)) {
+            return;
+        }
+
+        // Store the supported versions on the player
+        event.getPlayer().setMetadata(SUPPORTED_VERSIONS,
+                new FixedMetadataValue(api.getPlugin(), api.getImplementations().keySet()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerRegisterChannel(PlayerRegisterChannelEvent event) {
         if (!event.getChannel().equals(CHANNEL)) {
             return;
         }
 
-        // Client is using SmoothCoasters - tell it which implementation versions we support
+        if (event.getPlayer().hasMetadata(OFFERED_VERSIONS)) {
+            // Another plugin already started the handshake
+            return;
+        }
 
-        Map<Byte, Implementation> implementations = api.getImplementations();
+        // Determine the set of versions which all plugins support
+        Set<Byte> versions = null;
+        for (MetadataValue value : event.getPlayer().getMetadata(SUPPORTED_VERSIONS)) {
+            @SuppressWarnings("unchecked")
+            Set<Byte> set = (Set<Byte>) value.value();
 
-        byte[] message = new byte[implementations.size() + 1];
-        message[0] = (byte) implementations.size();
+            if (versions == null) {
+                // initialize versions
+                versions = new TreeSet<>(set);
+            } else {
+                // remove unsupported versions
+                versions.retainAll(set);
+            }
+        }
+
+        // Store the offered versions on the player
+        // Causes other plugins which contain SmoothCoastersAPI to skip repeating this step (see early return above)
+        event.getPlayer().setMetadata(OFFERED_VERSIONS, new FixedMetadataValue(api.getPlugin(), versions));
+
+        if (versions == null || versions.isEmpty()) {
+            api.getPlugin().getLogger().warning(
+                    "[SmoothCoastersAPI] Plugins have no supported SmoothCoasters versions in common");
+            for (MetadataValue value : event.getPlayer().getMetadata(SUPPORTED_VERSIONS)) {
+                @SuppressWarnings("unchecked")
+                Set<Byte> set = (Set<Byte>) value.value();
+                api.getPlugin().getLogger().warning("[SmoothCoastersAPI] " + value.getOwningPlugin().getName() + ": " +
+                        set.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+            }
+            return;
+        }
+
+        byte[] message = new byte[versions.size() + 1];
+        message[0] = (byte) versions.size();
 
         int i = 1;
-        for (Byte version : implementations.keySet()) {
+        for (Byte version : versions) {
             message[i++] = version;
         }
 

@@ -6,15 +6,15 @@ import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SmoothCoastersAPI {
     private final Plugin plugin;
     private final PlayerListener playerListener;
-    private final Map<Byte, Implementation> implementations = new HashMap<>();
+    private final Map<Byte, Implementation> implementations = new TreeMap<>();
     private final Map<UUID, PlayerEntry> players = new ConcurrentHashMap<>();
     private final NetworkInterface defaultNetwork;
 
