@@ -8,10 +8,12 @@ public enum Feature {
     /**
      * Rotate an entity for a player
      */
+    @Deprecated
     ENTITY_ROTATION,
     /**
      * Update entity properties
      */
+    @Deprecated
     ENTITY_PROPERTIES,
     /**
      * Change the camera rotation limit

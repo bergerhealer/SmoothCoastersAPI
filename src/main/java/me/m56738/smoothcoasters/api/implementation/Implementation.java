@@ -19,10 +19,12 @@ public interface Implementation {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void sendEntityRotation(NetworkInterface network, Player player, int entity, float x, float y, float z, float w, byte ticks) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void sendEntityProperties(NetworkInterface network, Player player, int entity, byte ticks) {
         throw new UnsupportedOperationException();
     }

@@ -6,48 +6,23 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.ByteBuffer;
-import java.util.EnumSet;
 
-public class ImplV5 implements Implementation {
-    protected static final String CHANNEL_ROTATION = "smoothcoasters:rot";
+@Deprecated
+public class ImplV5 extends ImplV6 {
     protected static final String CHANNEL_ENTITY_ROTATION = "smoothcoasters:erot";
     protected static final String CHANNEL_ENTITY_PROPERTIES = "smoothcoasters:eprop";
-    protected static final String CHANNEL_ROTATION_LIMIT = "smoothcoasters:limit";
-    private final EnumSet<Feature> features = EnumSet.of(
-            Feature.ROTATION, Feature.ENTITY_ROTATION, Feature.ENTITY_PROPERTIES, Feature.ROTATION_LIMIT
-    );
 
     public ImplV5(Plugin plugin) {
-        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL_ROTATION);
+        super(plugin);
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL_ENTITY_ROTATION);
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL_ENTITY_PROPERTIES);
-        plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL_ROTATION_LIMIT);
-    }
-
-    @Override
-    public EnumSet<Feature> getFeatures() {
-        return features;
+        this.features.add(Feature.ENTITY_ROTATION);
+        this.features.add(Feature.ENTITY_PROPERTIES);
     }
 
     @Override
     public byte getVersion() {
         return 5;
-    }
-
-    @Override
-    public void sendRotation(NetworkInterface network, Player player, float x, float y, float z, float w, byte ticks) {
-        ByteBuffer buffer = ByteBuffer.allocate(17);
-        buffer.putFloat(x);
-        buffer.putFloat(y);
-        buffer.putFloat(z);
-        buffer.putFloat(w);
-        buffer.put(ticks);
-
-        buffer.rewind();
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-
-        network.sendMessage(player, CHANNEL_ROTATION, bytes);
     }
 
     @Override
@@ -78,20 +53,5 @@ public class ImplV5 implements Implementation {
         buffer.get(bytes);
 
         network.sendMessage(player, CHANNEL_ENTITY_PROPERTIES, bytes);
-    }
-
-    @Override
-    public void sendRotationLimit(NetworkInterface network, Player player, float minYaw, float maxYaw, float minPitch, float maxPitch) {
-        ByteBuffer buffer = ByteBuffer.allocate(16);
-        buffer.putFloat(minYaw);
-        buffer.putFloat(maxYaw);
-        buffer.putFloat(minPitch);
-        buffer.putFloat(maxPitch);
-
-        buffer.rewind();
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-
-        network.sendMessage(player, CHANNEL_ROTATION_LIMIT, bytes);
     }
 }

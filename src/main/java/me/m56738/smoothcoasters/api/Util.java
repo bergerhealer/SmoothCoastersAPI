@@ -1,6 +1,5 @@
 package me.m56738.smoothcoasters.api;
 
-import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 

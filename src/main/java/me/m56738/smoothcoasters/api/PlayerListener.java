@@ -127,7 +127,10 @@ public class PlayerListener implements Listener, PluginMessageListener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        api.removeEntry(event.getPlayer());
+        Player player = event.getPlayer();
+        player.removeMetadata(SUPPORTED_VERSIONS, api.getPlugin());
+        player.removeMetadata(OFFERED_VERSIONS, api.getPlugin());
+        api.removeEntry(player);
     }
 
     public void unregister() {

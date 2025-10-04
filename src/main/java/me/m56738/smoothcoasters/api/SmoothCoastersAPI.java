@@ -2,6 +2,7 @@ package me.m56738.smoothcoasters.api;
 
 import me.m56738.smoothcoasters.api.implementation.ImplV4;
 import me.m56738.smoothcoasters.api.implementation.ImplV5;
+import me.m56738.smoothcoasters.api.implementation.ImplV6;
 import me.m56738.smoothcoasters.api.implementation.Implementation;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -24,6 +25,7 @@ public class SmoothCoastersAPI {
         this.defaultNetwork = new DefaultNetworkInterface(plugin);
         registerImplementation(new ImplV4(plugin));
         registerImplementation(new ImplV5(plugin));
+        registerImplementation(new ImplV6(plugin));
     }
 
     public void registerImplementation(Implementation implementation) {
@@ -158,6 +160,7 @@ public class SmoothCoastersAPI {
      * @param ticks   how long the interpolation should take - usually 3 ticks
      * @return true if the implementation used for this player supports {@link Feature#ENTITY_ROTATION}
      */
+    @Deprecated
     public boolean setEntityRotation(NetworkInterface network, Player player, int entity, float x, float y, float z, float w, byte ticks) {
         if (network == null) {
             network = defaultNetwork;
@@ -183,6 +186,7 @@ public class SmoothCoastersAPI {
      * @param ticks   lerp ticks of the entity
      * @return true if the implementation used for this player supports {@link Feature#ENTITY_PROPERTIES}
      */
+    @Deprecated
     public boolean setEntityLerpTicks(NetworkInterface network, Player player, int entity, byte ticks) {
         if (network == null) {
             network = defaultNetwork;
