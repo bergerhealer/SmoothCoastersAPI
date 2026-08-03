@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -34,30 +35,35 @@ public class PlayerListener implements Listener, PluginMessageListener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerRegisterChannelStart(PlayerRegisterChannelEvent event) {
-        if (!event.getChannel().equals(CHANNEL)) {
-            return;
-        }
-
+    public void onPlayerJoinStart(PlayerJoinEvent event) {
         // Store the supported versions on the player
         event.getPlayer().setMetadata(SUPPORTED_VERSIONS,
                 new FixedMetadataValue(api.getPlugin(), api.getImplementations().keySet()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerRegisterChannel(PlayerRegisterChannelEvent event) {
-        if (!event.getChannel().equals(CHANNEL)) {
-            return;
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (event.getPlayer().getListeningPluginChannels().contains(CHANNEL)) {
+            startHandshake(event.getPlayer());
         }
+    }
 
-        if (event.getPlayer().hasMetadata(OFFERED_VERSIONS)) {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRegisterChannel(PlayerRegisterChannelEvent event) {
+        if (event.getChannel().equals(CHANNEL)) {
+            startHandshake(event.getPlayer());
+        }
+    }
+
+    private void startHandshake(Player player) {
+        if (player.hasMetadata(OFFERED_VERSIONS)) {
             // Another plugin already started the handshake
             return;
         }
 
         // Determine the set of versions which all plugins support
         Set<Byte> versions = null;
-        for (MetadataValue value : event.getPlayer().getMetadata(SUPPORTED_VERSIONS)) {
+        for (MetadataValue value : player.getMetadata(SUPPORTED_VERSIONS)) {
             @SuppressWarnings("unchecked")
             Set<Byte> set = (Set<Byte>) value.value();
 
@@ -72,12 +78,12 @@ public class PlayerListener implements Listener, PluginMessageListener {
 
         // Store the offered versions on the player
         // Causes other plugins which contain SmoothCoastersAPI to skip repeating this step (see early return above)
-        event.getPlayer().setMetadata(OFFERED_VERSIONS, new FixedMetadataValue(api.getPlugin(), versions));
+        player.setMetadata(OFFERED_VERSIONS, new FixedMetadataValue(api.getPlugin(), versions));
 
         if (versions == null || versions.isEmpty()) {
             api.getPlugin().getLogger().warning(
                     "[SmoothCoastersAPI] Plugins have no supported SmoothCoasters versions in common");
-            for (MetadataValue value : event.getPlayer().getMetadata(SUPPORTED_VERSIONS)) {
+            for (MetadataValue value : player.getMetadata(SUPPORTED_VERSIONS)) {
                 @SuppressWarnings("unchecked")
                 Set<Byte> set = (Set<Byte>) value.value();
                 api.getPlugin().getLogger().warning("[SmoothCoastersAPI] " + value.getOwningPlugin().getName() + ": " +
@@ -94,7 +100,7 @@ public class PlayerListener implements Listener, PluginMessageListener {
             message[i++] = version;
         }
 
-        event.getPlayer().sendPluginMessage(api.getPlugin(), CHANNEL, message);
+        player.sendPluginMessage(api.getPlugin(), CHANNEL, message);
     }
 
     @Override
